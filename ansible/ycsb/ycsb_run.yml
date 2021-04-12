@@ -1,0 +1,36 @@
+---
+- name: run ycsb 
+  hosts: server_ycsb
+  #become: True
+  gather_facts: yes
+
+  vars:
+    ycsb_dir: "{{ hostvars[inventory_hostname].remote_dir }}"
+    config_file: "{{ playbook_dir }}/config/{{ CONFIG_FILE }}"
+  
+  tasks:
+    # 1. Configuraton file check
+    - name: check extra vars
+      fail:
+        msg: "usage: ansible-playbook ycsb_run.yml --extra-vars \"CONFIG_FILE=[config file location]\""
+      when: CONFIG_FILE is undefined
+
+    - name: check if the config file exists (locally)
+      local_action: stat path={{ config_file }}
+      register: stat_config_file
+    
+    - name: verifying if the config file exists
+      fail:
+        msg: "{{ config_file }} is not exist"
+      when: stat_config_file.stat.exists == false 
+
+    - name: set vars_files
+      set_fact:
+        vars_files: "{{ config_file }}"
+    
+    # 2. Set ouput dir & file
+    - name: create ouput dir
+      set_fact:
+        test_time: "{{ ansible_date_time.epoch }}"
+
+
