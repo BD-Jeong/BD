@@ -1,20 +1,19 @@
 ---
 # workload: a, b, c, d, e, f
-# requestdistribution: uniform(default), zipfian, latest
 # insertorder: hashed(default), ordered
 # operationalcount: number of operations
 # recordcount: number of records to load
 # maxexecutiontime: maximum execution time in seconds
 # readallfields: read all fields (true, default) or just one (false)
 # threads: number of client threads
+# engine: mongodb-async / mongodb
 
-# do not delete items(only can change).
 workload: a
-requestdistribution: zipfian
 insertorder: ordered
 operationalcount: 5000000
 recordcount: 5000000
 maxexecutiontime: 300
 readallfields: true
 threads: 50
-
+ioengine: mongodb-async
+url: "mongodb://user:pass@165.1.1.1:27017/admin"

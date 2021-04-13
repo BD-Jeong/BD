@@ -5,8 +5,16 @@
   gather_facts: yes
 
   vars:
-    ycsb_dir: "{{ hostvars[inventory_hostname].remote_dir }}"
+    date: "{{ ansible_date_time.date }}"
+    time: "{{ ansible_date_time.time }}"
+    root_dir: "{{ hostvars[inventory_hostname].remote_dir }}"
+    ycsb_dir: "{{ root_dir }}/ycsb-0.17.0"
+    log_dir: "{{ ycsb_dir }}/result/{{ date }}"
     config_file: "{{ playbook_dir }}/config/{{ CONFIG_FILE }}"
+    master_result_dir: "{{ playbook_dir }}/result/{{ date }}"
+
+  vars_files: 
+    - [ "{{ config_file }}", "{{ playbook_dir }}/config/dummy.yml" ]
   
   tasks:
     # 1. Configuraton file check
@@ -24,13 +32,61 @@
         msg: "{{ config_file }} is not exist"
       when: stat_config_file.stat.exists == false 
 
-    - name: set vars_files
+    # 2. Set ycsb environments
+    - name: set ycsb parameters
       set_fact:
-        vars_files: "{{ config_file }}"
+        ycsb_workload: "{{ workload  | default('a')}}"
+        ycsb_insertorder: "{{ insertorder | default('hashed') }}"
+        ycsb_operationalcount: "{{ operationalcount | default('1000') }}"
+        ycsb_recordcount: "{{ recordcount | default('1000') }}"
+        ycsb_maxexecutiontime: "{{ maxexecutiontime | default('60') }}"
+        ycsb_readallfields: "{{ readallfields | default('true') }}"
+        ycsb_threads: "{{ threads | default('1') }}"
+        
+        mongo_ioengine: "{{ ioengine | default('mongdb') }}"
+        mongo_url: "{{ url | default('url') }}"
+
+    - name: set commands
+      set_fact:
+         log_file_name: "{{ time }}_workload{{ ycsb_workload }}.log"
+         cmd_load: "{{ ycsb_dir }}/bin/ycsb load {{ mongo_ioengine }} -s -P {{ ycsb_dir }}/workload/workload{{ ycsb_workload }}  
+                    -p recordcount={{ ycsb_recordcount }}
+                    -p operationalcount={{ ycsb_operationalcount }}
+                    -p readallfields={{ ycsb_readallfields }}
+                    -p insertorder={{ ycsb_insertorder }}
+                    -threads {{ ycsb_threads }} 
+                    -p mongodb.url=\"{{ mongo_url }}\""
+         cmd_run: "{{ ycsb_dir }}/bin/ycsb run {{ mongo_ioengine }} -s -P {{ ycsb_dir }}/workload/workload{{ ycsb_workload }}
+                    -p recordcount={{ ycsb_recordcount }}
+                    -p operationalcount={{ ycsb_operationalcount }}
+                    -p readallfields={{ ycsb_readallfields }}
+                    -p insertorder={{ ycsb_insertorder }}
+                    -threads {{ ycsb_threads }}
+                    -p mongodb.url=\"{{ mongo_url }}\""
+  
+    - name: create dir (if not exist)
+      file:
+        path: "{{ log_dir }}"
+        state: directory
+        mode: 0775
     
-    # 2. Set ouput dir & file
-    - name: create ouput dir
-      set_fact:
-        test_time: "{{ ansible_date_time.epoch }}"
+    - debug:
+        var=cmd_load
+    - debug:
+        var=cmd_run
+        
+    # 3. Load and run
+    - name: load
+      shell: "{{ cmd_load }}"
 
+    - name: run
+      shell: "{{ cmd_run }} >> {{ log_dir }}/{{ log_file }}"
 
+    # 4. Fetch result from hosts
+    - name: create result dir (if not exist) on ansible master
+      local_action: shell mkdir -p "{{ master_result_dir }}"
+
+    - name: fetch results
+      fetch:
+        src: "{{ log_dir }}/{{ log_file }}"
+        dest: "{{ master_result_dir }}/{{ inventory_hostname }}-{{ log_file_name }}"
