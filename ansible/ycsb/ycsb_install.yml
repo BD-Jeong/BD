@@ -1,14 +1,13 @@
 ---
 - name: install ycsb 
-  hosts: server_ycsb
+  hosts: "{{ INPUT_HOST }}" 
   #become: True
   gather_facts: yes
 
   vars:
-    ycsb_zip_file: ycsb-0.17.0.zip
     root_dir: "{{ hostvars[inventory_hostname].remote_dir }}"
+    ycsb_dir: "{{ root_dir }}/ycsb-0.17.0"
     packages:
-    - unzip
     - python
 
   tasks:
@@ -22,7 +21,7 @@
         state: directory 
         mode: 0775
     
-    - name: unarchive ycsb zip file
-      unarchive:
-        src: "{{ ycsb_zip_file }}"
+    - name: copy ycsb directory
+      copy:
+        src: "{{ ycsb_dir }}"
         dest: "{{ root_dir }}"

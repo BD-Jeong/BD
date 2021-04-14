@@ -1,6 +1,6 @@
 ---
 - name: run ycsb 
-  hosts: server_ycsb
+  hosts: "{{ INPUT_HOST }}" 
   #become: True
   gather_facts: yes
 
@@ -9,20 +9,14 @@
     time: "{{ ansible_date_time.time }}"
     root_dir: "{{ hostvars[inventory_hostname].remote_dir }}"
     ycsb_dir: "{{ root_dir }}/ycsb-0.17.0"
-    log_dir: "{{ ycsb_dir }}/result/{{ date }}"
+    log_dir: "{{ root_dir }}/result/{{ date }}"
     config_file: "{{ playbook_dir }}/config/{{ CONFIG_FILE }}"
     master_result_dir: "{{ playbook_dir }}/result/{{ date }}"
 
-  vars_files: 
-    - [ "{{ config_file }}", "{{ playbook_dir }}/config/dummy.yml" ]
+  vars_files: "{{ config_file }}"
   
   tasks:
     # 1. Configuraton file check
-    - name: check extra vars
-      fail:
-        msg: "usage: ansible-playbook ycsb_run.yml --extra-vars \"CONFIG_FILE=[config file location]\""
-      when: CONFIG_FILE is undefined
-
     - name: check if the config file exists (locally)
       local_action: stat path={{ config_file }}
       register: stat_config_file
@@ -74,13 +68,13 @@
         var=cmd_load
     - debug:
         var=cmd_run
-        
+    
     # 3. Load and run
     - name: load
       shell: "{{ cmd_load }}"
 
     - name: run
-      shell: "{{ cmd_run }} >> {{ log_dir }}/{{ log_file }}"
+      shell: "{{ cmd_run }} >> {{ log_dir }}/{{ log_file_name }}"
 
     # 4. Fetch result from hosts
     - name: create result dir (if not exist) on ansible master
@@ -88,5 +82,6 @@
 
     - name: fetch results
       fetch:
-        src: "{{ log_dir }}/{{ log_file }}"
+        src: "{{ log_dir }}/{{ log_file_name }}"
         dest: "{{ master_result_dir }}/{{ inventory_hostname }}-{{ log_file_name }}"
+        flat: yes
