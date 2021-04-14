@@ -6,7 +6,13 @@ These YCSB play-books are operated only with mongoDB.
 
 Getting Started
 ---------------
-1. Edit hosts file. You can use your own group names and host names.
+1. Download the ycsb.
+     ```sh
+     curl -O --location https://github.com/brianfrankcooper/YCSB/releases/download/0.17.0/ycsb-0.17.0.tar.gz
+     tar -xzvf ycsb-0.17.0.tar.gz
+     ```
+
+2. Edit hosts file. You can use your own group names and host names.
     ```sh
     [server_ycsb]
     server1 ansible_host=127.0.0.1 
@@ -15,7 +21,7 @@ Getting Started
     [server_ycsb:vars]
     remote_dir= "~/ycsb"
     ```
-2. Add configuration files in config directory. You can make your own multiples config files.
+3. Add configuration files in config directory. You can make your own multiples config files.
     ```yaml
     ---
     # workload: a(default), b, c, d, e, f
@@ -37,7 +43,7 @@ Getting Started
     ioengine: mongodb-async
     url: "mongodb://user:pass@165.1.1.1:27017/admin"
     ```
-3. Run play books.
+4. Run play books.
 
     Install:
     ```sh
@@ -49,6 +55,6 @@ Getting Started
     	ansible-playbook ycsb_run.yml -e "INPUT_HOST=[group or host name], CONFIG_FILE=[config file name]"
 
     ```
-4. Check results and logs.
+5. Check results and logs.
 
     The hosts run the ycsb benchmark and save the logs in local file. playbook can fetch results to ansible master node. see the result directory in your ansible node.
