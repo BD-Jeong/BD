@@ -52,7 +52,7 @@ Getting Started
 
     Run:
     ```sh
-    	ansible-playbook ycsb_run.yml -e "INPUT_HOST=[group or host name], CONFIG_FILE=[config file name]"
+    	ansible-playbook ycsb_run.yml -i hosts -e "INPUT_HOST=[group or host name], CONFIG_FILE=[config file name]"
 
     ```
 5. Check results and logs.
