@@ -21,7 +21,7 @@ Getting Started
     [server_ycsb:vars]
     remote_dir= "~/ycsb"
     ```
-3. Add configuration files in config directory. You can make your own multiples config files.
+3. Add configuration files in config directory. You can make your own multiple config files.
     ```yaml
     ---
     # workload: a(default), b, c, d, e, f
@@ -47,7 +47,7 @@ Getting Started
 
     Install:
     ```sh
-    	ansible-playbook ycsb_install.yml -i hosts -k -e "INPUT_HOST=[your own group or host]"
+    	ansible-playbook ycsb_install.yml -i hosts -e "INPUT_HOST=[your own group or host]"
     ```
 
     Run:

@@ -1,12 +1,11 @@
 ---
 - name: install ycsb 
   hosts: "{{ INPUT_HOST }}" 
-  #become: True
+  become: True
   gather_facts: yes
 
   vars:
     root_dir: "{{ hostvars[inventory_hostname].remote_dir }}"
-    #ycsb_dir: "{{ root_dir }}/ycsb-0.17.0"
     master_ycsb_dir: "{{ playbook_dir }}/ycsb-0.17.0"
     packages:
     - python
@@ -15,8 +14,7 @@
     - name: check if the ycsb exists (locally)
       local_action: stat path={{ master_ycsb_dir }}
       register: stat_ycsb
-    - debug:
-        var=stat_ycsb
+    
     - name: verify if the ycsb exists
       fail:
         msg: "{{ master_ycsb_dir }} does not exist"
@@ -30,9 +28,14 @@
       file:
         path: "{{ root_dir }}"
         state: directory 
-        mode: 0775
     
     - name: copy ycsb directory
       copy:
         src: "{{ master_ycsb_dir }}"
         dest: "{{ root_dir }}"
+
+    - name: mode 755 for directories and files
+      file:
+        path: "{{ root_dir }}"
+        mode: 0755
+        recurse: yes

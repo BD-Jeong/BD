@@ -1,7 +1,7 @@
 ---
 - name: run ycsb 
   hosts: "{{ INPUT_HOST }}" 
-  # become: True
+  become: True
   gather_facts: yes
 
   vars:
@@ -13,7 +13,8 @@
     config_file: "{{ playbook_dir }}/config/{{ CONFIG_FILE }}"
     master_result_dir: "{{ playbook_dir }}/result/{{ date }}"
 
-  vars_files: "{{ config_file }}"
+  vars_files: 
+    - "{{ config_file }}"
   
   tasks:
     # 1. Configuraton file check
@@ -43,14 +44,14 @@
     - name: set commands
       set_fact:
          log_file_name: "{{ time }}_workload{{ ycsb_workload }}.log"
-         cmd_load: "{{ ycsb_dir }}/bin/ycsb load {{ mongo_ioengine }} -s -P {{ ycsb_dir }}/workload/workload{{ ycsb_workload }}  
+         cmd_load: "{{ ycsb_dir }}/bin/ycsb load {{ mongo_ioengine }} -s -P {{ ycsb_dir }}/workloads/workload{{ ycsb_workload }}  
                     -p recordcount={{ ycsb_recordcount }}
                     -p operationalcount={{ ycsb_operationalcount }}
                     -p readallfields={{ ycsb_readallfields }}
                     -p insertorder={{ ycsb_insertorder }}
                     -threads {{ ycsb_threads }} 
                     -p mongodb.url=\"{{ mongo_url }}\""
-         cmd_run: "{{ ycsb_dir }}/bin/ycsb run {{ mongo_ioengine }} -s -P {{ ycsb_dir }}/workload/workload{{ ycsb_workload }}
+         cmd_run: "{{ ycsb_dir }}/bin/ycsb run {{ mongo_ioengine }} -s -P {{ ycsb_dir }}/workloads/workload{{ ycsb_workload }}
                     -p recordcount={{ ycsb_recordcount }}
                     -p operationalcount={{ ycsb_operationalcount }}
                     -p readallfields={{ ycsb_readallfields }}
