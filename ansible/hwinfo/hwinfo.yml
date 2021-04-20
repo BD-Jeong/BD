@@ -1,0 +1,21 @@
+---
+- name: get hw info 
+  hosts: vagrant 
+  become: True
+  gather_facts: yes
+
+  vars: 
+    - hw_info: {
+        'platform':
+    }
+      
+
+  tasks:
+    - name: server platform
+      shell: dmidecode | grep 'Product Name' 
+      register: platform
+    - name: server platform
+      set_fact:
+        hw_info['platform ']: "{{ platform }}"
+    - debug:
+        var: hw_info
